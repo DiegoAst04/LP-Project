@@ -1,0 +1,244 @@
+body{
+    margin:0;
+    padding:10px;
+    font-family:Arial,sans-serif;
+    background:#b8dfc2;
+}
+
+#contenedor{
+    display:grid;
+    grid-template-columns:260px 900px 430px;
+    gap:16px;
+    align-items:flex-start;
+    justify-content:center;
+}
+
+#panel-jugadores,
+#panel,
+#construccion-panel{
+    border:1px solid black;
+    background:white;
+    padding:10px;
+}
+
+#panel-jugadores h2,
+#panel h2,
+#construccion-panel h3{
+    margin-top:0;
+}
+
+.tarjeta-jugador{
+    border:1px solid black;
+    background:white;
+    padding:10px;
+    margin-bottom:10px;
+    font-size:15px;
+    line-height:1.35;
+}
+
+.tarjeta-0{ border-left:8px solid red; }
+.tarjeta-1{ border-left:8px solid blue; }
+.tarjeta-2{ border-left:8px solid green; }
+.tarjeta-3{ border-left:8px solid goldenrod; }
+
+.jugador-quebrado{
+    opacity:0.45;
+    filter:grayscale(100%);
+}
+
+#tablero{
+    width:900px;
+    height:900px;
+    display:grid;
+    grid-template-columns:120px repeat(9,1fr) 120px;
+    grid-template-rows:120px repeat(9,1fr) 120px;
+    border:4px solid black;
+    background:#c9f0d1;
+    flex-shrink:0;
+}
+
+.casilla{
+    border:1px solid black;
+    display:flex;
+    flex-direction:column;
+    background:#f7fff7;
+    position:relative;
+    overflow:hidden;
+}
+
+.barra-color{
+    width:100%;
+    height:15px;
+    flex-shrink:0;
+}
+
+.nombre-casilla{
+    font-size:11px;
+    font-weight:500;
+    line-height:1.1;
+    padding:2px;
+}
+
+.fichas{
+    position:absolute;
+    right:4px;
+    bottom:4px;
+    min-height:0;
+    display:flex;
+    gap:3px;
+    flex-wrap:wrap;
+    justify-content:flex-end;
+    align-items:center;
+    max-width:55px;
+}
+
+.centro{
+    grid-column:2 / 11;
+    grid-row:2 / 11;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    font-size:52px;
+    font-weight:bold;
+    background:#c9f0d1;
+}
+
+#panel{
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+}
+
+
+
+#turno,
+#dados,
+#dinero,
+#eventos,
+#compra-panel,
+#subasta-panel{
+    border:1px solid black;
+    background:white;
+    padding:10px;
+}
+
+#eventos{
+    font-size:17px;
+    min-height:120px;
+}
+
+#btnDado{
+    height:55px;
+    font-size:16px;
+}
+
+#inputPuja,
+#selectPropiedadConstruir{
+    width:100%;
+    padding:8px;
+    box-sizing:border-box;
+    margin-bottom:8px;
+}
+
+button{
+    width:100%;
+    padding:10px;
+    margin-top:8px;
+    cursor:pointer;
+    font-size:15px;
+}
+
+button:disabled{
+    cursor:not-allowed;
+    opacity:0.55;
+}
+
+.dueno-casilla{
+    min-height:18px;
+    font-size:12px;
+    font-weight:bold;
+    text-align:center;
+    line-height:1;
+    padding-bottom:20px;
+}
+
+.mejoras{
+    position:absolute;
+    left:0;
+    right:0;
+    bottom:14px;
+    font-size:12px;
+    text-align:center;
+    line-height:1;
+    z-index:4;
+}
+
+.fichas{
+    position:absolute;
+    right:4px;
+    bottom:3px;
+    min-height:0;
+    display:flex;
+    gap:3px;
+    flex-wrap:wrap;
+    justify-content:flex-end;
+    align-items:center;
+    max-width:55px;
+    z-index:5;
+}
+
+.hipotecada{
+    background:#d9d9d9 !important;
+    opacity:0.82;
+}
+
+.hipotecada .nombre-casilla{
+    text-decoration:line-through;
+}
+
+.ficha-jugador{
+    width:26px;
+    height:26px;
+    border-radius:50%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:18px;
+    font-weight:bold;
+    border:2px solid black;
+    background:white;
+    position:relative;
+    z-index:5;
+}
+
+.ficha-0{ box-shadow:0 0 0 3px red; }
+.ficha-1{ box-shadow:0 0 0 3px blue; }
+.ficha-2{ box-shadow:0 0 0 3px green; }
+.ficha-3{ box-shadow:0 0 0 3px goldenrod; }
+
+.ficha-activa::before{
+    content:"👉";
+    position:absolute;
+    top:-2px;
+    left:-22px;
+    font-size:15px;
+}
+
+.ficha-quebrada{
+    opacity:0.45;
+    filter:grayscale(100%);
+}
+
+.dueno-0{ color:red; }
+.dueno-1{ color:blue; }
+.dueno-2{ color:green; }
+.dueno-3{ color:goldenrod; }
+
+.morado{ background:purple; }
+.celeste{ background:deepskyblue; }
+.rosado{ background:hotpink; }
+.naranja{ background:orange; }
+.rojo{ background:red; }
+.amarillo{ background:gold; }
+.verde{ background:green; }
+.azul{ background:darkblue; }

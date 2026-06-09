@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Monopoly</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div id="contenedor">
+
+    <div id="panel-jugadores">
+        <h2>Jugadores</h2>
+        <div id="lista-jugadores"></div>
+    </div>
+
+    <div id="tablero"></div>
+
+    <div id="panel">
+
+        <h2>MONOPOLY</h2>
+
+        <div id="turno">
+            <strong>TURNO ACTUAL</strong><br>
+            -
+        </div>
+        <div id="dados">
+            <strong>🎲 DADOS</strong><br>
+        -
+        </div>
+
+        <div id="dinero">
+            Dinero: -
+        </div>
+
+        <div id="eventos">
+            Bienvenido al juego
+        </div>
+
+        <div id="compra-panel" style="display:none;">
+            <p id="mensaje-compra"></p>
+            <button id="btnComprar">Comprar</button>
+            <button id="btnNoComprar">No Comprar / Subastar</button>
+        </div>
+
+        <div id="subasta-panel" style="display:none;">
+            <h3>Subasta</h3>
+
+            <p id="info-subasta">
+                Subasta no iniciada
+            </p>
+
+            <input
+                type="number"
+                id="inputPuja"
+                placeholder="Monto de puja">
+
+            <button id="btnPujar">Pujar</button>
+            <button id="btnRetirarse">Retirarse</button>
+        </div>
+
+        <button id="btnDado">Tirar Dados</button>
+
+            <h3>Construcción</h3>
+
+            <select id="selectPropiedadConstruir">
+                <option value="">Selecciona propiedad</option>
+            </select>
+
+            <button id="btnConstruirCasa">Construir Casa</button>
+            <button id="btnConstruirHotel">Construir Hotel</button>
+            <button id="btnHipotecar">Hipotecar</button>
+            <button id="btnLevantarHipoteca">Levantar Hipoteca</button>
+        </div>
+
+
+    </div>
+
+</div>
+
+<script src="game.js"></script>
+
+</body>
+</html>
