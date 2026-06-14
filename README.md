@@ -1,4 +1,3 @@
-```markdown
 # 🎩 Monopoly Multijugador en Tiempo Real
 
 Este es un proyecto de Monopoly multijugador interactivo desarrollado con **Clojure** (Backend) y **Vanilla JavaScript / HTML / CSS** (Frontend). El juego utiliza WebSockets para mantener el estado del tablero sincronizado en tiempo real entre todos los jugadores de la red local.
