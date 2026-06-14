@@ -1,9 +1,3 @@
-¡Me parece una excelente idea! Pausar las pruebas para documentar el proyecto es una de las mejores prácticas que puedes tener en el desarrollo de software. Un buen `README.md` es la carta de presentación de tu juego.
-
-Aquí tienes la estructura redactada y formateada en Markdown, lista para que la copies y pegues directamente en el archivo `README.md` de tu repositorio en GitHub.
-
----
-
 ```markdown
 # 🎩 Monopoly Multijugador en Tiempo Real
 
