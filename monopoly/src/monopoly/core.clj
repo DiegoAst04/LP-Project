@@ -1,6 +1,7 @@
 (ns monopoly.core
   (:require [monopoly.tablero  :refer [tablero obtener-casilla]]
             [monopoly.jugadores :refer [estado-juego
+                                        crear-jugador
                                         agregar-jugador!
                                         mover-jugador!
                                         tirar-dados
@@ -24,18 +25,20 @@
                                        manejar-turno-en-carcel!]]))
 
 ;; ─── Inicializar ───────────────────────────────────────────
-
 (defn inicializar-estado! []
-(swap! estado-juego assoc
-       :propiedades {}
-       :turno 0
-       :fase :lobby
-       :dobles-seguidos 0
-       :jugadores [])
+  (swap! estado-juego assoc
+         :propiedades {}
+         :turno 0
+         :fase :lobby
+         :dobles-seguidos 0
+         :subasta nil
+         :jugadores [])
   {:exito true :mensaje "Estado inicializado"})
 
-(defn registrar-jugador! [nombre]
-  (agregar-jugador! nombre))
+(defn registrar-jugador! [nombre ficha cliente-id]
+  (let [id (count (:jugadores @estado-juego))]
+    (swap! estado-juego update :jugadores conj (crear-jugador id nombre ficha cliente-id))
+    {:exito true :id id :nombre nombre}))
 
 (defn iniciar-juego! []
   (if (< (count (:jugadores @estado-juego)) 2)
@@ -46,6 +49,21 @@
       {:exito  true
        :mensaje "Juego iniciado"
        :estado  @estado-juego})))
+
+(defn marcar-listo! [cliente-id]
+  (let [jugadores (:jugadores @estado-juego)
+        idx (first (keep-indexed #(when (= (:cliente-id %2) cliente-id) %1) jugadores))]
+    (if idx
+      (do
+        (swap! estado-juego assoc-in [:jugadores idx :listo?] true)
+
+        (let [nuevos-jugadores (:jugadores @estado-juego)]
+          (when (and (>= (count nuevos-jugadores) 2)
+                     (every? :listo? nuevos-jugadores))
+            (iniciar-juego!)))
+
+        {:exito true :mensaje "Jugador listo"})
+      {:exito false :mensaje "Jugador no encontrado"})))
 
 ;; ─── Fortuna ───────────────────────────────────────────────
 
@@ -127,8 +145,7 @@
                     pos-nueva   (:pos-nueva resultado)
                     casilla     (obtener-casilla pos-nueva)
                     res-casilla (resolver-casilla! id casilla dados tablero)]
-                (swap! estado-juego assoc :dobles-seguidos 0)
-                (siguiente-turno!)
+                (swap! estado-juego assoc :dobles-seguidos 0) 
                 {:exito true
                  :eventos (filterv some?
                                    [{:tipo :dados
@@ -143,8 +160,7 @@
                  :estado @estado-juego})
 
               (do
-                (swap! estado-juego assoc :dobles-seguidos 0)
-                (siguiente-turno!)
+                (swap! estado-juego assoc :dobles-seguidos 0) 
                 {:exito true
                  :eventos [{:tipo :dados
                             :dados dados
@@ -177,6 +193,13 @@
                     pos-nueva   (:pos-nueva resultado)
                     casilla     (obtener-casilla pos-nueva)
                     res-casilla (resolver-casilla! id casilla dados tablero)
+              
+                    ;; --- NUEVO: Si la carta nos movió a otro lado, leemos esa nueva casilla ---
+                    pos-final     (:nueva-posicion res-casilla)
+                    casilla-final (when pos-final (obtener-casilla pos-final))
+                    res-final     (when casilla-final (resolver-casilla! id casilla-final dados tablero))
+                    ;; -------------------------------------------------------------------------
+              
                     eventos     (filterv some?
                                          [{:tipo :dados
                                            :dados dados
@@ -188,14 +211,18 @@
                                            :posicion pos-nueva
                                            :casilla (:nombre casilla)}
                                           res-casilla
+              
+                                          ;; --- NUEVO: Añadimos los eventos de aterrizaje secundario ---
+                                          (when casilla-final
+                                            {:tipo :movimiento :posicion pos-final :casilla (:nombre casilla-final)})
+                                          res-final
+                                          ;; ------------------------------------------------------------
+              
                                           (when dobles?
                                             {:tipo :dobles
                                              :mensaje "Dobles! Puedes volver a tirar"})])]
 
-                (swap! estado-juego assoc :dobles-seguidos dobles-new)
-
-                (when (not dobles?)
-                  (siguiente-turno!))
+                (swap! estado-juego assoc :dobles-seguidos dobles-new) 
 
                 {:exito true
                  :eventos eventos
@@ -206,6 +233,11 @@
   (let [casilla (obtener-casilla id-casilla)
         resultado (comprar-propiedad! id-jugador casilla)]
     (assoc resultado :estado @estado-juego)))
+
+(defn accion-terminar-turno! []
+  (swap! estado-juego assoc :dobles-seguidos 0)
+  (siguiente-turno!)
+  {:exito true :mensaje "Turno terminado" :estado @estado-juego})
 
 (defn accion-no-comprar! [id-casilla]
 

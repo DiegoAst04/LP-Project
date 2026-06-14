@@ -160,18 +160,21 @@
 
 (defn construir-casa! [id-jugador id-casilla casilla tablero]
   (let [prop       (get-in @estado-juego [:propiedades id-casilla])
-        casas      (:casas prop)
+        casas      (or (:casas prop) 0)
         costo      (int (/ (:precio casilla) 2))
         color      (:color casilla)
-        tiene-mono (tiene-monopolio? id-jugador color tablero)]
+        tiene-mono (tiene-monopolio? id-jugador color tablero)
+
+        ;; NUEVO: Buscamos cuántas casas tiene el terreno menos construido de este color
+        casillas-color (casillas-de-color color tablero)
+        min-casas      (apply min (map #(or (:casas (get-in @estado-juego [:propiedades (:id %)])) 0)
+                                       casillas-color))]
     (cond
       (not= (:dueno prop) id-jugador)
       {:exito false :mensaje "No es tu propiedad"}
 
       (not tiene-mono)
-      {:exito false
-       :mensaje (str "Necesitas todas las propiedades del color "
-                     (name color) " para construir")}
+      {:exito false :mensaje (str "Necesitas todas las propiedades del color " (name color) " para construir")}
 
       (:hotel prop)
       {:exito false :mensaje "Ya tiene hotel"}
@@ -179,14 +182,16 @@
       (= casas 3)
       {:exito false :mensaje "Ya tienes 3 casas, construye hotel"}
 
+      ;; NUEVO: Bloqueo de construcción dispareja
+      (> casas min-casas)
+      {:exito false :mensaje "Debes construir uniformemente. Pon casas en tus otros terrenos primero."}
+
       :else
       (let [resultado (cobrar-jugador! id-jugador costo)]
         (if (:exito resultado)
           (do
             (swap! estado-juego update-in [:propiedades id-casilla :casas] inc)
-            {:exito true
-             :mensaje (str "Casa construida en " (:nombre casilla))
-             :casilla (:nombre casilla)})
+            {:exito true :mensaje (str "Casa construida en " (:nombre casilla)) :casilla (:nombre casilla)})
           {:exito false :mensaje "No tienes dinero para construir"})))))
 
 (defn construir-hotel! [id-jugador id-casilla casilla tablero]
@@ -223,31 +228,46 @@
 ;; ─── Renta ─────────────────────────────────────────────────
 
 (defn calcular-renta [casilla prop dados tablero]
-  (case (:tipo casilla)
-    :propiedad
-    (let [tiene-mono (tiene-monopolio? (:dueno prop) (:color casilla) tablero)]
-      (cond
-        (:hotel prop)        (:renta-hotel casilla)
-        (= (:casas prop) 3) (* (:renta casilla) 6)
-        (= (:casas prop) 2) (* (:renta casilla) 4)
-        (= (:casas prop) 1) (* (:renta casilla) 2)
-        tiene-mono           (* (:renta casilla) 2)
-        :else                (:renta casilla)))
+  (let [dueno (:dueno prop)
+        tipo  (:tipo casilla)]
 
-    :estacion
-    (let [estaciones-dueno
-          (count (filter #(= (:dueno %) (:dueno prop))
-                         (vals (get @estado-juego :propiedades {}))))]
-      (case estaciones-dueno 1 25 2 50 3 100 4 200 25))
+    (cond
+      ;; --- REGLA 1: ESTACIONES ---
+      (= tipo :estacion)
+      (let [estaciones-dueno
+            (count (filter (fn [c]
+                             (and (= (:tipo c) :estacion) ;; Condición 1: Es una estación
+                                  (= (:dueno (get-in @estado-juego [:propiedades (:id c)])) dueno))) ;; Condición 2: Es mía
+                           tablero))]
+        (case estaciones-dueno
+          1 25
+          2 50
+          3 100
+          4 200
+          25)) ;; Default de seguridad
 
-    :servicio
-    (let [servicios-dueno
-          (count (filter #(= (:dueno %) (:dueno prop))
-                         (vals (get @estado-juego :propiedades {}))))]
-      (if (= servicios-dueno 2)
-        (* 10 dados)
-        (* 4 dados)))
-    0))
+      ;; --- REGLA 2: SERVICIOS (Electricidad / Aguas) ---
+      (= tipo :servicio)
+      (let [servicios-dueno
+            (count (filter (fn [c]
+                             (and (= (:tipo c) :servicio) ;; Condición 1: Es un servicio
+                                  (= (:dueno (get-in @estado-juego [:propiedades (:id c)])) dueno))) ;; Condición 2: Es mío
+                           tablero))]
+        (if (= servicios-dueno 2)
+          (* 10 dados)
+          (* 4 dados)))
+
+      ;; --- REGLA 3: TERRENOS NORMALES (Casas, Hoteles, Monopolios) ---
+      :else
+      (let [color      (:color casilla)
+            tiene-mono (if color (tiene-monopolio? dueno color tablero) false)]
+        (cond
+          (:hotel prop)        (:renta-hotel casilla)
+          (= (:casas prop) 3)  (* (:renta casilla) 15)
+          (= (:casas prop) 2)  (* (:renta casilla) 10)
+          (= (:casas prop) 1)  (* (:renta casilla) 5)
+          tiene-mono           (* (:renta casilla) 2)
+          :else                (:renta casilla))))))
 
 (defn cobrar-renta! [id-jugador casilla dados tablero]
   (let [prop (get-in @estado-juego [:propiedades (:id casilla)])]
