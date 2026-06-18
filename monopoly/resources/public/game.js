@@ -1,14 +1,14 @@
 const btnTerminarTurno = document.getElementById("btnTerminarTurno");
 let yaTireLosDados = false;
 
-// --- SISTEMA DE SESIONES ---
+//Sistema de sesiones
 let miClienteId = localStorage.getItem("monopoly_cliente_id");
 if (!miClienteId) {
-    // Genera un ID aleatorio único para esta computadora si es la primera vez que entra
+
     miClienteId = Math.random().toString(36).substring(2, 15);
     localStorage.setItem("monopoly_cliente_id", miClienteId);
 }
-let miJugadorId = null; // Guardará nuestro ID (0, 1, 2 o 3) cuando el servidor nos acepte
+let miJugadorId = null; 
 
 const SERVER_HOST = window.location.hostname; 
 const API_BASE = `http://${SERVER_HOST}:8080`;
@@ -46,7 +46,7 @@ let jugadorCompraPendiente = null;
 let estadoGlobal = null;
 let tableroGlobal = [];
 
-////// BOTONES LOBBY INICIO ////////////////////////
+//Botones Lobby Inicio
 document.getElementById("btnUnirse").addEventListener("click", async () => {
     const nombre = document.getElementById("inputNombre").value;
     const ficha = document.getElementById("selectFicha").value;
@@ -60,10 +60,10 @@ document.getElementById("btnListo").addEventListener("click", async () => {
     document.getElementById("btnListo").textContent = "Esperando a los demás...";
     await fetch(`${API_BASE}/listo/${miClienteId}`);
 });
-///// BOTONES LOBBY FIN  ////////////////////////////
+//Botones Lobby fin
 
 async function iniciarFrontend() {
-    // Cambiado de localhost a API_BASE dinámico
+  
     const respuesta = await fetch(`${API_BASE}/estado`);
     const data = await respuesta.json();
 
@@ -71,13 +71,13 @@ async function iniciarFrontend() {
     tableroGlobal = data.tablero;
 
     construirTablero(data.tablero);
-    procesarActualizacionEstado(data); // Agrupamos las actualizaciones visuales
+    procesarActualizacionEstado(data); 
     
-    // Inicializar la conexión en tiempo real vía WebSockets
+    
     conectarWebSocket();
 }
 
-// Nueva función para procesar estados de forma limpia cada vez que el servidor mande datos
+
 function procesarActualizacionEstado(data) {
     estadoGlobal = data;
     tableroGlobal = data.tablero;
@@ -85,7 +85,7 @@ function procesarActualizacionEstado(data) {
     const lobbyPantalla = document.getElementById("lobby-pantalla");
     const contenedor = document.getElementById("contenedor");
 
-    // LÓGICA DEL LOBBY: Si el juego sigue en fase "lobby", mostramos la sala de espera
+    
     if (data.estado.fase === "lobby") {
         lobbyPantalla.style.display = "flex";
         contenedor.style.display = "none";
@@ -94,28 +94,28 @@ function procesarActualizacionEstado(data) {
         ul.innerHTML = "";
         let yoEstoyRegistrado = false;
 
-        // Mostrar quiénes ya entraron
+        
         data.jugadores.forEach(j => {
             const li = document.createElement("li");
             li.innerHTML = `${j.nombre} ${j.listo ? "✅" : "⏳"}`;
             ul.appendChild(li);
             
-            // Comprobar si mi computadora ya está en la lista del servidor
+            
             if (j["cliente-id"] === miClienteId) {
                 yoEstoyRegistrado = true;
                 miJugadorId = j.id;
             }
         });
 
-        // Cambiar vista de registro a lista de espera
+      
         if (yoEstoyRegistrado) {
             document.getElementById("registro-jugador").style.display = "none";
             document.getElementById("lista-espera").style.display = "block";
         }
-        return; // Detenemos la actualización del tablero mientras estemos en el lobby
+        return;
     }
 
-    // SI EL JUEGO YA INICIÓ: Ocultamos el lobby y mostramos el tablero
+   
     lobbyPantalla.style.display = "none";
     contenedor.style.display = "grid";
 
@@ -130,26 +130,26 @@ function procesarActualizacionEstado(data) {
     verificarGanador(data);
     actualizarPanelJugadores(data);
 
-    // --- BLOQUEO DE CONTROLES MAESTRO ---
+    //Bloqueo de controles
     const esMiTurno = (data["turno-id"] === miJugadorId);
 
     mostrarSubasta(data.estado.subasta);
     
-    // El dado se bloquea si hay una decisión de compra pendiente o una subasta activa
+    
     const bloqueadoPorEvento = hayDecisionPendiente || data.estado.subasta !== null;
 
-    // GESTIÓN DINÁMICA DE DADOS Y TERMINAR TURNO
+ 
     if (!esMiTurno) {
-        // Si no es tu turno, reseteamos la visualización estándar (Dado apagado, Terminar oculto)
+        
         document.getElementById("btnDado").style.display = "block";
         document.getElementById("btnDado").disabled = true;
         btnTerminarTurno.style.display = "none";
     } else {
-        // Si es tu turno, evaluamos si ya lanzaste en esta iteración
+        
         if (yaTireLosDados) {
             document.getElementById("btnDado").style.display = "none";
             btnTerminarTurno.style.display = "block";
-            btnTerminarTurno.disabled = bloqueadoPorEvento; // No puedes pasar el turno si debes decidir una compra/subasta
+            btnTerminarTurno.disabled = bloqueadoPorEvento; 
         } else {
             document.getElementById("btnDado").style.display = "block";
             document.getElementById("btnDado").disabled = bloqueadoPorEvento;
@@ -157,8 +157,8 @@ function procesarActualizacionEstado(data) {
         }
     }
     
-    // BOTONES DE CONSTRUCCIÓN Y GESTIÓN
-    // Te permiten operar libremente durante tu turno, excepto si hay una subasta activa interrumpiendo el flujo
+    // Botones de construccion y gestion
+
     const enSubasta = data.estado.subasta !== null;
     document.getElementById("btnConstruirCasa").disabled = !esMiTurno || enSubasta;
     document.getElementById("btnConstruirHotel").disabled = !esMiTurno || enSubasta;
@@ -166,7 +166,7 @@ function procesarActualizacionEstado(data) {
     document.getElementById("btnLevantarHipoteca").disabled = !esMiTurno || enSubasta;
 }
 
-// Conexión reactiva por WebSocket
+
 function conectarWebSocket() {
     const socket = new WebSocket(WS_BASE);
 
@@ -175,11 +175,11 @@ function conectarWebSocket() {
     };
 
     socket.onmessage = (event) => {
-        // Cada vez que un jugador haga una acción en el backend, llegará aquí instantáneamente
+       
         const nuevoEstado = JSON.parse(event.data);
         console.log("Estado actualizado recibido desde el servidor central:", nuevoEstado);
         
-        // Renderizar la interfaz con los nuevos cambios de inmediato
+      
         procesarActualizacionEstado(nuevoEstado);
     };
 
@@ -298,7 +298,7 @@ function actualizarFichasDesdeEstado(jugadores) {
     jugadores.forEach(jugador => {
         let ficha = document.getElementById(`jugador-${jugador.id}`);
         
-        // Si la ficha no existe en el HTML, la creamos
+        
         if (!ficha) {
             crearFicha(jugador.id, jugador.ficha);
         }
@@ -390,7 +390,7 @@ function actualizarPanel(data) {
         return;
     }
 
-    // 1. Mostrar de quién es el turno (público para todos)
+    //Mostrar de quién es el turno (público)
     const turnoId = data["turno-id"];
     const jugadorTurno = jugadores.find(j => j.id === turnoId) || jugadores[0];
 
@@ -398,7 +398,7 @@ function actualizarPanel(data) {
         `<strong>🎮 TURNO ACTUAL</strong><br>
         👉 ${jugadorTurno.nombre}`;
 
-    // 2. Mostrar MIS datos personales usando miJugadorId (privado de cada pantalla)
+    // 2. Mostrar mis datos personales (privado de cada pantalla)
     const miJugador = jugadores.find(j => j.id === miJugadorId);
 
     if (miJugador) {
@@ -406,10 +406,10 @@ function actualizarPanel(data) {
             `<strong>💵 MI DINERO</strong><br>
             $${miJugador.dinero}`;
 
-        // Llenamos el menú de hipotecas/construcción SOLO con mis propiedades
+      
         actualizarPanelConstruccion(miJugador);
     } else {
-        // Fallback por si la partida no ha iniciado
+        
         dineroDiv.innerHTML = `<strong>💵 DINERO</strong><br>-`;
         selectPropiedadConstruir.innerHTML = '<option value="">Selecciona propiedad</option>';
     }
@@ -499,9 +499,9 @@ function crearFicha(id, indiceFichaElegida) {
 
     ficha.id = `jugador-${id}`;
     ficha.classList.add("ficha-jugador");
-    ficha.classList.add(`ficha-${id}`); // Mantiene el color de borde
+    ficha.classList.add(`ficha-${id}`); 
 
-    // Le asignamos el emoji que eligió en el select del lobby
+
     ficha.textContent = simbolos[indiceFichaElegida] || "●";
 
     document.querySelector("#casilla-0 .fichas").appendChild(ficha);
@@ -560,7 +560,7 @@ function mostrarSubasta(subasta) {
          Ganando: ${ganadorActual ? ganadorActual.nombre : "Nadie"}<br>
          Turno de puja: ${jugadorTurno ? jugadorTurno.nombre : "-"}`;
 
-    // NUEVO: Bloquear botones si no es mi turno de puja
+
     const esMiTurnoSubasta = (jugadorTurno && jugadorTurno.id === miJugadorId);
     document.getElementById("btnPujar").disabled = !esMiTurnoSubasta;
     document.getElementById("btnRetirarse").disabled = !esMiTurnoSubasta;
@@ -620,14 +620,14 @@ document
             data.eventos.find(e => e.tipo === "dados");
 
             if (eventoDados) {
-                // Mostramos los números
+
                 dadosDiv.innerHTML =
                     `<strong>🎲 DADOS</strong><br>
                     🎲 ${eventoDados.dados[0]}
                     + 🎲 ${eventoDados.dados[1]}
                     = <strong>${eventoDados.suma}</strong>`;
                 
-                // Evaluamos las reglas avanzadas del Monopoly
+
                 const sonDobles = eventoDados.dados[0] === eventoDados.dados[1];
                 const estabaEnCarcel = jugadorAntesDeTirar["en-carcel"];
 
@@ -637,14 +637,13 @@ document
 
                 } else if (sonDobles && estabaEnCarcel) {
                     dadosDiv.innerHTML += "<br>🎉 ¡Dobles! Sales de la cárcel (No tiras de nuevo).";
-                    yaTireLosDados = true; // El doble se gasta en salir
+                    yaTireLosDados = true; 
 
                 } else {
-                    yaTireLosDados = true; // Tiro normal
+                    yaTireLosDados = true; 
                 }
 
-                // NOTA: Borramos los btnDado.style.display = "none" que estaban aquí.
-                // Ahora procesarActualizacionEstado se encargará de mostrar los botones correctamente.
+
             }
 
         const eventoMovimiento =
@@ -806,16 +805,16 @@ btnComprar.addEventListener("click", async () => {
     const data = await respuesta.json();
 
     if (!data.exito) {
-        // Mostramos el mensaje de error en pantalla
+
         eventosDiv.innerHTML = `<strong>⚠️ ${data.mensaje}</strong><br>Debes enviarla a subasta.`;
         
-        // Revertimos la UI para obligarlo a presionar "No Comprar / Subastar"
+      
         compraPendiente = casillaGuardada;
         jugadorCompraPendiente = jugadorGuardado;
         hayDecisionPendiente = true;
-        compraPanel.style.display = "block"; // Volvemos a encender el panel
+        compraPanel.style.display = "block";
         
-        return; // 🛑 DETENEMOS LA FUNCIÓN AQUÍ. No hacemos nada más.
+        return; 
     }
 
     eventosDiv.textContent = data.mensaje;
