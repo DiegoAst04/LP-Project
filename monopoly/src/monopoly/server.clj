@@ -2,11 +2,11 @@
   (:require
    [compojure.core :refer [GET defroutes]]
    [compojure.route :as route]
-   [org.httpkit.server :refer [run-server with-channel on-close send!]] ;; <-- Cambiado a Http-Kit
+   [org.httpkit.server :refer [run-server with-channel on-close send!]] 
    [ring.middleware.json :refer [wrap-json-response]]
    [ring.util.response :refer [response]]
-   [clojure.data.json :as json]                                         ;; <-- Para codificar datos del WS
-   [monopoly.jugadores :refer [estado-juego]]                           ;; <-- Importamos el átomo del estado
+   [clojure.data.json :as json]                                        
+   [monopoly.jugadores :refer [estado-juego]]                          
    [monopoly.core :as game]))
 
 (defn cors [handler]
@@ -17,27 +17,26 @@
           (assoc-in [:headers "Access-Control-Allow-Methods"] "GET, POST, OPTIONS")
           (assoc-in [:headers "Access-Control-Allow-Headers"] "Content-Type")))))
 
-;; Átomo para almacenar los canales activos de WebSockets (las computadoras conectadas)
+
 (def connected-channels (atom #{}))
 
-;; Handler para la ruta de WebSockets
+
 (defn ws-handler [request]
   (with-channel request channel
-    ;; Registrar nueva computadora conectada
+  
     (swap! connected-channels conj channel)
     (println "Nueva computadora conectada al juego. Total:" (count @connected-channels))
     
-    ;; Al cerrar la pestaña o desconectarse, la removemos del set
+   
     (on-close channel (fn [status]
                         (swap! connected-channels disj channel)
                         (println "Computadora desconectada. Total restantes:" (count @connected-channels))))))
 
-;; --- EL OBSERVADOR MÁGICO (add-watch) ---
-;; Cada vez que 'estado-juego' cambie por CUALQUIER acción, esta función se dispara automáticamente
+
 (add-watch estado-juego :websocket-broadcaster
            (fn [_key _ref _old-state _new-state]
              (let [estado-actual-json (json/write-str (game/estado-actual))]
-               ;; Enviamos de forma asíncrona el estado actualizado a TODAS las computadoras
+             
                (doseq [channel @connected-channels]
                  (send! channel estado-actual-json)))))
 
@@ -118,8 +117,7 @@
       wrap-json-response
       cors))
 
-;; Cambiamos 'run-jetty' por 'run-server' de Http-Kit
-;; CRITICAL: Usamos la IP "0.0.0.0" para escuchar peticiones de CUALQUIER dispositivo de la red local
+
 (defn iniciar-servidor []
   (run-server app {:port 8080
                    :ip "0.0.0.0"})) 
