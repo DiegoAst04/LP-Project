@@ -4,7 +4,7 @@
                                     transferir!
                                     cobrar-con-rescate!]]))
 
-;; ─── Cartas de Suerte ──────────────────────────────────────
+;;Cartas de Suerte
 
 (def cartas-suerte
   [{:id 1
@@ -143,7 +143,7 @@
                  :mensaje "Avanzas a la estacion mas cercana"
                  :nueva-posicion mas-cercana}))}])
 
-;; ─── Cartas de Arca Comunal ────────────────────────────────
+;;Cartas de Arca Comunal
 
 (def cartas-arca-comunal
   [{:id 1
@@ -272,7 +272,7 @@
                 {:tipo :arca-comunal
                  :mensaje "Pagas $50 a cada jugador"}))}])
 
-;; ─── Aplicar carta ─────────────────────────────────────────
+;;Aplicar carta
 
 (defn aplicar-carta-suerte! [id-jugador dados]
   (let [carta (rand-nth cartas-suerte)]
