@@ -2,7 +2,7 @@
   (:require [monopoly.jugadores :refer [estado-juego quebrar-jugador!]]
             [monopoly.tablero :refer [tablero obtener-casilla]]))
 
-;; ─── Transferencias ────────────────────────────────────────
+;; Transferencias 
 
 (defn cobrar-jugador! [id monto]
   (let [dinero-actual (get-in @estado-juego [:jugadores id :dinero])]
@@ -83,7 +83,7 @@
         (pagar-jugador! id-cobrador monto)
         resultado)
       resultado)))
-;; ─── Propiedades ───────────────────────────────────────────
+;;Propiedades
 
 (defn agregar-propiedad-jugador! [id-jugador id-casilla]
   (swap! estado-juego update-in [:jugadores id-jugador :propiedades]
@@ -103,7 +103,7 @@
       {:exito false
        :mensaje "No tienes dinero suficiente para comprar"})))
 
-;; ─── Hipotecas ─────────────────────────────────────────────
+;;Hipotecas
 
 (defn hipotecar! [id-jugador id-casilla casilla]
   (let [valor (int (/ (:precio casilla) 2))
@@ -136,7 +136,7 @@
       {:exito false
        :mensaje "Esta propiedad no esta hipotecada"})))
 
-;; ─── Verificar monopolio de color ──────────────────────────
+;;Verificar monopolio de color 
 
 (defn casillas-de-color [color tablero]
   (filter #(= (:color %) color) tablero))
@@ -156,7 +156,7 @@
                  :rojo :amarillo :verde :azul]]
     (filter #(tiene-monopolio? id-jugador % tablero) colores)))
 
-;; ─── Casas y Hoteles ───────────────────────────────────────
+;;Casas y Hoteles
 
 (defn construir-casa! [id-jugador id-casilla casilla tablero]
   (let [prop       (get-in @estado-juego [:propiedades id-casilla])
@@ -165,7 +165,7 @@
         color      (:color casilla)
         tiene-mono (tiene-monopolio? id-jugador color tablero)
 
-        ;; NUEVO: Buscamos cuántas casas tiene el terreno menos construido de este color
+        
         casillas-color (casillas-de-color color tablero)
         min-casas      (apply min (map #(or (:casas (get-in @estado-juego [:propiedades (:id %)])) 0)
                                        casillas-color))]
@@ -182,7 +182,7 @@
       (= casas 3)
       {:exito false :mensaje "Ya tienes 3 casas, construye hotel"}
 
-      ;; NUEVO: Bloqueo de construcción dispareja
+      
       (> casas min-casas)
       {:exito false :mensaje "Debes construir uniformemente. Pon casas en tus otros terrenos primero."}
 
@@ -225,18 +225,18 @@
              :casilla (:nombre casilla)})
           {:exito false :mensaje "No tienes dinero para construir hotel"})))))
 
-;; ─── Renta ─────────────────────────────────────────────────
+;;Renta
 
 (defn calcular-renta [casilla prop dados tablero]
   (let [dueno (:dueno prop)
         tipo  (:tipo casilla)]
 
     (cond
-      ;; --- REGLA 1: ESTACIONES ---
+      ;;Regla 1: Estaciones
       (= tipo :estacion)
       (let [estaciones-dueno
             (count (filter (fn [c]
-                             (and (= (:tipo c) :estacion) ;; Condición 1: Es una estación
+                             (and (= (:tipo c) :estacion) 
                                   (= (:dueno (get-in @estado-juego [:propiedades (:id c)])) dueno))) ;; Condición 2: Es mía
                            tablero))]
         (case estaciones-dueno
@@ -244,9 +244,9 @@
           2 50
           3 100
           4 200
-          25)) ;; Default de seguridad
+          25)) 
 
-      ;; --- REGLA 2: SERVICIOS (Electricidad / Aguas) ---
+      ;;Regla 2: Servicios
       (= tipo :servicio)
       (let [servicios-dueno
             (count (filter (fn [c]
@@ -257,7 +257,7 @@
           (* 10 dados)
           (* 4 dados)))
 
-      ;; --- REGLA 3: TERRENOS NORMALES (Casas, Hoteles, Monopolios) ---
+      ;;Regla 3: Terrenos normales 
       :else
       (let [color      (:color casilla)
             tiene-mono (if color (tiene-monopolio? dueno color tablero) false)]
@@ -293,7 +293,7 @@
                :renta renta
                :id-dueno id-dueno)))))
 
-;; ─── Subasta ───────────────────────────────────────────────
+;;Subasta 
 
 (defn procesar-puja [puja-actual puja dinero-jugador]
   (cond
@@ -321,7 +321,7 @@
    :ganador (:nombre ganador)
    :puja    puja-final})
 
-;; ─── Reparto inicial (regla monopoly rapido) ───────────────
+;;Reparto inicial (monopoly rapido)
 
 (defn repartir-propiedades-iniciales! [tablero]
   (let [propiedades (filter #(#{:propiedad :estacion :servicio} (:tipo %)) tablero)
