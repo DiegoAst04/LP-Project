@@ -8,13 +8,13 @@
             [monopoly.cartas :refer [aplicar-carta-suerte!
                                      aplicar-carta-arca-comunal!]]))
 
-;; ─── Helpers ───────────────────────────────────────────────
+;;Helpers
 
 (defn propiedad-libre? [id-casilla]
   (let [prop (get-in @estado-juego [:propiedades id-casilla])]
     (or (nil? prop) (nil? (:dueno prop)))))
 
-;; ─── Manejo de carcel ──────────────────────────────────────
+;;Manejo de carcel
 
 (defn manejar-turno-en-carcel! [id-jugador dados]
   (let [jugador  (get-in @estado-juego [:jugadores id-jugador])
@@ -45,7 +45,7 @@
         (turno-en-carcel! id-jugador)
         {:salio false :mensaje "Sigues en la carcel"}))))
 
-;; ─── Resolver cada tipo de casilla ─────────────────────────
+;;Resolver cada tipo de casilla
 
 (defn resolver-salida! [id-jugador]
   (pagar-jugador! id-jugador 200)
@@ -106,8 +106,7 @@
   {:tipo :carcel-visita
    :mensaje "Solo de visita"})
 
-;; ─── Dispatcher principal ──────────────────────────────────
-
+;;Dispatcher principal
 (defn resolver-casilla! [id-jugador casilla dados tablero]
   (let [resultado
         (case (:tipo casilla)
