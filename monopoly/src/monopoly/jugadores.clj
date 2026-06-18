@@ -7,7 +7,7 @@
          :subasta nil
          :jugadores []}))
 
-;; ─── Crear jugadores ───────────────────────────────────────
+;;Crear jugadores
 
 (defn crear-jugador [id nombre ficha cliente-id]
   {:id               id
@@ -28,7 +28,7 @@
     (swap! estado-juego update :jugadores conj (crear-jugador id nombre))
     {:exito true :id id :nombre nombre}))
 
-;; ─── Movimiento ────────────────────────────────────────────
+;;Movimiento 
 
 (defn tirar-dados []
   [(inc (rand-int 6)) (inc (rand-int 6))])
@@ -36,19 +36,19 @@
 (defn mover-jugador! [id-jugador casillas]
   (let [pos-actual (get-in @estado-juego [:jugadores id-jugador :posicion])
         pos-nueva  (mod (+ pos-actual casillas) 40)
-        ;; Si la nueva posición es menor a la actual, significa que dimos la vuelta al tablero
+    
         paso-salida? (< pos-nueva pos-actual)]
 
-    ;; 1. Actualizamos la posición en el tablero
+  
     (swap! estado-juego assoc-in [:jugadores id-jugador :posicion] pos-nueva)
 
-    ;; 2. ¡NUEVO! Si pasó por salida, le sumamos los $200 reales al instante
+    
     (when paso-salida?
       (swap! estado-juego update-in [:jugadores id-jugador :dinero] + 200))
 
     {:pos-nueva pos-nueva :paso-salida? paso-salida?}))
 
-;; ─── Turno ─────────────────────────────────────────────────
+;;Turno
 
 (defn jugador-actual []
   (let [id-actual (mod (:turno @estado-juego)
@@ -63,8 +63,7 @@
   (swap! estado-juego update :turno inc)
   {:exito true :turno (:turno @estado-juego)})
 
-;; ─── Carcel ────────────────────────────────────────────────
-
+;;Carcel
 (defn enviar-carcel! [id]
   (swap! estado-juego update-in [:jugadores id] assoc
          :posicion         10
@@ -82,7 +81,7 @@
          :turnos-en-carcel 0)
   {:exito true :mensaje "Jugador liberado de la carcel"})
 
-;; ─── Quiebra ───────────────────────────────────────────────
+;;Quiebra
 
 (defn quebrar-jugador! [id]
   (swap! estado-juego assoc-in [:jugadores id :quebrado] true)
@@ -97,7 +96,7 @@
 (defn ganador []
   (first (jugadores-activos)))
 
-;; ─── Info ──────────────────────────────────────────────────
+;;Info 
 
 (defn estado-jugador [id]
   (get-in @estado-juego [:jugadores id]))
