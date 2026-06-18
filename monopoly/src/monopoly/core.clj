@@ -24,7 +24,7 @@
             [monopoly.casillas :refer [resolver-casilla!
                                        manejar-turno-en-carcel!]]))
 
-;; ─── Inicializar ───────────────────────────────────────────
+;;Inicializar
 (defn inicializar-estado! []
   (swap! estado-juego assoc
          :propiedades {}
@@ -65,7 +65,7 @@
         {:exito true :mensaje "Jugador listo"})
       {:exito false :mensaje "Jugador no encontrado"})))
 
-;; ─── Fortuna ───────────────────────────────────────────────
+;;Fortuna
 
 (defn calcular-fortuna [id-jugador]
   (let [jugador     (get-in @estado-juego [:jugadores id-jugador])
@@ -117,7 +117,7 @@
 
       :else false)))
 
-;; ─── Acciones del turno ────────────────────────────────────
+;;Acciones del turno
 
 (defn tirar-turno! []
   (let [jugadores (:jugadores @estado-juego)]
@@ -194,11 +194,11 @@
                     casilla     (obtener-casilla pos-nueva)
                     res-casilla (resolver-casilla! id casilla dados tablero)
               
-                    ;; --- NUEVO: Si la carta nos movió a otro lado, leemos esa nueva casilla ---
+              
                     pos-final     (:nueva-posicion res-casilla)
                     casilla-final (when pos-final (obtener-casilla pos-final))
                     res-final     (when casilla-final (resolver-casilla! id casilla-final dados tablero))
-                    ;; -------------------------------------------------------------------------
+            
               
                     eventos     (filterv some?
                                          [{:tipo :dados
@@ -212,11 +212,11 @@
                                            :casilla (:nombre casilla)}
                                           res-casilla
               
-                                          ;; --- NUEVO: Añadimos los eventos de aterrizaje secundario ---
+                                         
                                           (when casilla-final
                                             {:tipo :movimiento :posicion pos-final :casilla (:nombre casilla-final)})
                                           res-final
-                                          ;; ------------------------------------------------------------
+                                          
               
                                           (when dobles?
                                             {:tipo :dobles
@@ -344,7 +344,7 @@
         resultado (levantar-hipoteca! id-jugador id-casilla casilla)]
     (assoc resultado :estado @estado-juego)))
 
-;; ─── Estado del juego ──────────────────────────────────────
+;;Estado de juego
 
 (defn estado-actual []
   (let [jugadores (:jugadores @estado-juego)
@@ -362,7 +362,7 @@
      (when terminado
        (resultado-final))}))
 
-;; ─── Main (solo para pruebas) ──────────────────────────────
+
 
 (defn -main [& args]
   (println "Servidor Monopoly listo"))
